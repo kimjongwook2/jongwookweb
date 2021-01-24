@@ -1,0 +1,117 @@
+# -----------------------------------------------------------------------
+# 웹호스팅에서 심볼릭 링크를 허용하지 않았을 경우 아래 주석을 제거하세요. (6 line)
+# -----------------------------------------------------------------------
+
+Options +FollowSymLinks
+# Options +SymLinksIfOwnerMatch
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+#RewriteCond %{HTTPS} off
+#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301]
+
+RewriteBase /
+
+# -----------------------------------------------------------------------
+# 짧은주소 사용여부를 설정합니다. (16 line 'true or false')
+# -----------------------------------------------------------------------
+
+RewriteRule ^ - [E=G5_SHORTURL_USE:true]
+
+# -----------------------------------------------------------------------
+# board 파일만 적용합니다. (22 line 'true or false')
+# -----------------------------------------------------------------------
+
+RewriteRule ^ - [E=G5_SHORTURL_BOARD_ONLY:false]
+
+RewriteCond %{ENV:G5_SHORTURL_BOARD_ONLY} true
+RewriteCond %{REQUEST_URI} !^/(adm|shop) [NC]
+RewriteRule ^ - [E=G5_SHORTURL_BOARD_ONLY_USE:true]
+
+# -----------------------------------------------------------------------
+# board 게시판명을 변경합니다. (32-34 line 'archive' 두 곳을 동일하게 변경하면 됩니다.)
+# -----------------------------------------------------------------------
+
+RewriteRule ^ - [E=G5_SHORTURL_BOARD_NAME:content]
+
+RewriteCond %{REQUEST_URI} ^/content/ [NC]
+RewriteRule ^ - [E=G5_SHORTURL_BOARD_NAME_USE:true]
+
+# -----------------------------------------------------------------------
+# 특정 게시판을 제외합니다. (41 line 'bo_table' 여러개일 경우 사이는 | 로 구분하세요.)
+# -----------------------------------------------------------------------
+
+RewriteRule ^ - [E=G5_SHORTURL_BOARD_EXCLUDE:bo_table]
+
+# -----------------------------------------------------------------------
+# 아래 코드는 변경하시면 안됩니다.
+# -----------------------------------------------------------------------
+
+# only board
+RewriteCond %{ENV:G5_SHORTURL_BOARD_ONLY_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)$ bbs/board.php?bo_table=$1 [L,QSA]
+RewriteCond %{ENV:G5_SHORTURL_BOARD_ONLY_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)/([0-9]+)$ bbs/board.php?bo_table=$1&wr_id=$2 [L,QSA]
+RewriteCond %{ENV:G5_SHORTURL_BOARD_ONLY_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)/p([0-9]+)$ bbs/board.php?bo_table=$1&page=$2 [L,QSA]
+
+# 쇼핑몰
+RewriteRule ^shop/item/([0-9]+)$ shop/item.php?it_id=$1 [L,QSA]
+RewriteRule ^shop/list/([0-9]+)$ shop/list.php?ca_id=$1 [L,QSA]
+RewriteRule ^shop/list/([0-9]+)/p([0-9]+)$ shop/list.php?ca_id=$1&page=$2 [L,QSA]
+RewriteRule ^shop/orderinquiryview/([0-9]+)/([a-zA-Z0-9]+)$ shop/orderinquiryview.php?od_id=$1&uid=$2 [L,QSA]
+
+# 그 외 파일들 일괄 적용
+RewriteRule ^shop/([a-zA-Z0-9_]+)$ shop/$1.php [L,QSA]
+RewriteRule ^shop/([a-zA-Z0-9_]+)/([0-9]+)$ shop/$1.php?it_id=$2 [L,QSA]
+
+# 게시판 선택복사, 선택이동 (popup)
+RewriteCond %{QUERY_STRING} ^&?bo_table=([^&]+) [NC]
+RewriteRule ^ - [E=G5_TABLE:%1]
+
+RewriteCond %{QUERY_STRING} ^&?bo_table=([^&]+)&wr_id=([0-9]+) [NC]
+RewriteRule ^ - [E=G5_ID:/%2]
+
+RewriteCond %{ENV:G5_SHORTURL_BOARD_ONLY} false
+RewriteRule ^ - [E=G5_BOARD_NAME:%{ENV:G5_SHORTURL_BOARD_NAME}/]
+
+RewriteCond %{ENV:G5_SHORTURL_USE} true
+RewriteCond %{THE_REQUEST} ^.*/board.php?
+RewriteRule ^(bbs/)?board.php$ %{ENV:G5_BOARD_NAME}%{ENV:G5_TABLE}%{ENV:G5_ID}? [R=301,L]
+
+# 게시판 비밀번호 체크
+RewriteCond %{QUERY_STRING} w=x [NC]
+RewriteRule ^password/([a-zA-Z0-9_]+)/([0-9]+)$ bbs/password.php?bo_table=$1&comment_id=$2 [L,QSA]
+RewriteRule ^password/([a-zA-Z0-9_]+)/([0-9]+)$ bbs/password.php?bo_table=$1&wr_id=$2 [L,QSA]
+
+# 게시판 목록, 쓰기, 보기
+RewriteRule ^(write|board)/([a-zA-Z0-9_]+)$ bbs/$1.php?bo_table=$2 [L,QSA]
+RewriteRule ^(write|board)/([a-zA-Z0-9_]+)/([0-9]+)$ bbs/$1.php?bo_table=$2&wr_id=$3 [L,QSA]
+RewriteRule ^board/([a-zA-Z0-9_]+)/p([0-9]+)$ bbs/board.php?bo_table=$1&page=$2 [L,QSA]
+
+# 게시판 (사용자정의)
+RewriteCond %{ENV:G5_SHORTURL_BOARD_NAME_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)$ bbs/board.php?bo_table=$2 [L,QSA]
+RewriteCond %{ENV:G5_SHORTURL_BOARD_NAME_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)/([0-9]+)$ bbs/board.php?bo_table=$2&wr_id=$3 [L,QSA]
+RewriteCond %{ENV:G5_SHORTURL_BOARD_NAME_USE} true
+RewriteRule ^([a-zA-Z0-9_]+)/([a-zA-Z0-9_]+)/p([0-9]+)$ bbs/board.php?bo_table=$2&page=$3 [L,QSA]
+
+# 프로필, 이메일
+RewriteRule ^(profile|register_email)/([a-zA-Z0-9_]+)$ bbs/$1.php?mb_id=$2 [L,QSA]
+
+# 컨텐츠
+RewriteRule ^view/([a-zA-Z0-9_]+)$ bbs/content.php?co_id=$1 [L,QSA]
+
+# 페이지
+RewriteRule ^page/([a-zA-Z0-9_-]+)$ bbs/page.php?pid=$1 [L,QSA]
+
+# 그 외 파일들 일괄 적용
+RewriteCond %{REQUEST_URI} !^/(adm|shop) [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-zA-Z0-9_]+)/?$ bbs/$1.php [L,QSA]
+RewriteRule ^([a-zA-Z0-9_]+)/([0-9]+)$ bbs/$1.php?wr_id=$2 [L,QSA]
+RewriteRule ^([a-zA-Z0-9_]+)/([0-9]+)?url=([.]+)$ bbs/$1.php?wr_id=$2&url=$3 [L,QSA]
+
+</IfModule>
