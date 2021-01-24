@@ -1,0 +1,4 @@
+AuthName     "Backup file download"
+AuthType     Basic
+AuthUserFile /home/jong9409/htpasswd
+require      valid-user
