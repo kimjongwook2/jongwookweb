@@ -13,7 +13,7 @@ include_once(G5_THEME_PATH.'/head.php');
 
 
 <div>
-    <div>test입니다</div>
+    <div>test입니ddddd다</div>
 </div>
 
 
